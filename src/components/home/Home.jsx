@@ -4,7 +4,7 @@ import Image from "next/image";
 
 const Home = () => {
   return (
-    <main className="grid grid-cols-2 justify-center items-center py-[30px]">
+    <main className="main ">
       <AsideMenu />
       <section className="main__image h-100vh">
         <div className="image__container relative">
