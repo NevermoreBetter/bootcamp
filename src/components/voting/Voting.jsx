@@ -10,7 +10,7 @@ const API_KEY =
 const VoteComponent = () => {
   const [currentImageToVoteOn, setCurrentImageToVoteOn] = useState(null);
   const [historicVotes, setHistoricVotes] = useState();
-  const [reactionType, setReactionType] = useState();
+  const [historicFavorites, setHistoricFavorites] = useState();
   useEffect(() => {
     showHistoricVotes();
     showVoteOptions();
@@ -20,9 +20,9 @@ const VoteComponent = () => {
     document.getElementById("vote-options").style.display = "none";
     document.getElementById("vote-results").style.display = "block";
 
-    const url = `${API_URL}votes?limit=10&order=DESC`;
-
-    fetch(url, {
+    const votesUrl = `${API_URL}votes?limit=10&order=DESC`;
+    const favoritesUrl = `${API_URL}favorites?limit=10&order=DESC`;
+    fetch(votesUrl, {
       headers: {
         "x-api-key": API_KEY,
       },
@@ -30,6 +30,19 @@ const VoteComponent = () => {
       .then((response) => response.json())
       .then((data) => {
         setHistoricVotes(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+
+    fetch(votesUrl, {
+      headers: {
+        "x-api-key": API_KEY,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setHistoricFavorites(data);
       })
       .catch((error) => {
         console.log(error);
@@ -54,8 +67,30 @@ const VoteComponent = () => {
       },
     })
       .then((response) => response.json())
+
       .then((data) => {
         setCurrentImageToVoteOn(data[0]);
+      });
+  };
+
+  const favorite = () => {
+    const url = `${API_URL}favourites/`;
+    const body = {
+      image_id: currentImageToVoteOn.id,
+    };
+    fetch(url, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": API_KEY,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data))
+      .then((body) => {
+        showHistoricVotes();
+        showVoteOptions();
       });
   };
 
@@ -97,7 +132,6 @@ const VoteComponent = () => {
               <button
                 onClick={() => {
                   vote(1);
-                  setReactionType("Liked");
                 }}
                 className="vote-up"
               >
@@ -116,12 +150,7 @@ const VoteComponent = () => {
                   />
                 </svg>
               </button>
-              <button
-                className="vote-favorite"
-                onClick={() => {
-                  setReactionType("Favorited");
-                }}
-              >
+              <button className="vote-favorite" onClick={() => favorite()}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="30"
@@ -139,7 +168,7 @@ const VoteComponent = () => {
               </button>
               <button
                 onClick={() => {
-                  vote(-1), setReactionType("Disliked");
+                  vote(-1);
                 }}
                 className="vote-down"
               >
@@ -173,10 +202,12 @@ const VoteComponent = () => {
           <button onClick={showVoteOptions}>Show Vote Options</button>
           <div id="grid" className="imgrid" />
         </div>
+        {/* {console.log(historicFavorites)} */}
         {historicVotes
           ? historicVotes.map((id) => (
               <div key={id.id} className="flex">
                 {id.created_at.slice(11, 16)}
+
                 <p>
                   Image ID: <span>{id.image_id}</span> was added to{" "}
                   {id.value === 1
